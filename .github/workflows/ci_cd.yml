@@ -26,4 +26,16 @@ jobs:
           file: ./docker/Dockerfile.yml
           push: true
           tags: dillax/next_app:${{ github.sha }}
-       
+
+      - name: Clone gitops-argocd repo, update, and push
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git clone https://github.com/dillirams/gitops-argocd
+          cd gitops-argocd
+          sed -i 's|image: dillax/next_app:.*|image: dillax/next_app:${{ github.sha }}|' manifest.yml
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add manifest.yml
+          git commit -m "Update cms image to ${{ github.sha }}"
+          git push https://${PAT}@github.com/dillirams/gitops-argocd.git main
